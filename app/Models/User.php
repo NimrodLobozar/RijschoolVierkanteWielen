@@ -69,6 +69,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the student record of the user (if any).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    /**
+     * Get the instructor record of the user (if any).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function instructor()
+    {
+        return $this->hasOne(Instructor::class);
+    }
+
+    /**
      * Check if the user has a specific role.
      *
      * @param string $roleName

@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckRole
 {
     /**
-     * Handle an incoming request.
+     * Only allow users with an active role of the given name, e.g. `role:Instructeur`.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
@@ -18,7 +18,7 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!auth()->check() || !auth()->user()->roles()->where('name', 'Admin')->exists()) {
+        if (!auth()->check() || !auth()->user()->roles()->where('name', $role)->where('is_active', true)->exists()) {
             abort(403, 'Unauthorized');
         }
 

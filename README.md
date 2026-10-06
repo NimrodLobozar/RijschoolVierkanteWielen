@@ -1,61 +1,164 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Rijschool Vierkantewielen
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web application for **Rijschool Vierkantewielen**, a (fictional) Dutch driving school. It has a public website for prospective students and a back office where the driving school manages students, instructors, cars, lesson packages, driving lessons, invoices and payments. Instructors manage their own lesson schedule and students request their lessons online.
 
-## About Laravel
+This is a school project, built with **Laravel 12**, **Blade**, **Tailwind CSS**, **Alpine.js** and **MySQL 8**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**Public website**
+- Landing page that presents the driving school and its driving lessons
+- Registration, login and password reset (Laravel Breeze)
+- Light and dark theme toggle
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Back office (admin only)**
+- **Dashboard**: statistics, recent activity, quick actions and a maintenance mode switch
+- **Students** (`/students`): create, view, edit and delete students
+- **Instructors** (`/instructors`): manage instructors
+- **Cars** (`/autos`): fleet overview (brand, model, license plate, electric or gasoline)
+- **Packages** (`/packages`): lesson packages and price per lesson
+- **Accounts** (`/accounts`): user accounts with contact details and roles
+- **Invoices** (`/invoices`): create and edit invoices, mark them as paid or unpaid
+- **Payments** (`/betalingen`): register payments against invoices
+- **Registrations** (`/registrations`): link a student to a lesson package, with start and end date and lessons used / remaining
+- **Lessons** (`/lessons`): plan, move, cancel and delete lessons with instructor, car and pick-up address; filter by period, status and instructor; handle lesson requests from students
 
-## Learning Laravel
+**Instructor (`/instructeur/lessen`)**
+- Personal schedule with upcoming lessons, the student's phone number and pick-up address
+- Accept open lesson requests from students and choose a car
+- Reschedule a lesson, mark it as completed or cancelled, and add a progress note for the student
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**Student (`/leerling/lessen`)**
+- Overview of their lesson packages with how many lessons are left
+- Request a lesson (date, time, pick-up address, what to practise)
+- Cancel a request, or a planned lesson up to 24 hours in advance
+- Read the instructor's notes and leave a comment on completed lessons
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Instructors and students also get a dashboard with their next lessons.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**Lesson rules**
+- A lesson goes through the statuses *Aangevraagd* (requested by the student), *Gepland*, *Voltooid* or *Geannuleerd*
+- An instructor, car or student can't be booked for two overlapping lessons
+- A student can't plan more lessons than their package contains (cancelled lessons don't count) or outside the package period
 
-## Laravel Sponsors
+Access is controlled by the `roles` table: the back office requires an active `Admin` role (`AdminMiddleware`); the instructor and student pages require an active `Instructeur` or `Leerling` role (`role:` middleware, `CheckRole`).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Data model
 
-### Premium Partners
+| Table | Purpose |
+| --- | --- |
+| `users`, `contacts`, `roles` | Accounts. Login is by email, which lives in `contacts` |
+| `students`, `instructors` | Students (relation number) and instructors, linked to a user |
+| `packages`, `registrations` | Lesson packages and the student's registration for a package |
+| `lessons`, `pick-up_addresses`, `driving_lessons_per_pickup_addresses` | Planned driving lessons and pick-up locations |
+| `autos` | Cars used for lessons |
+| `exams` | Exams per registration (passed / failed) |
+| `invoices`, `payments` | Billing |
+| `notifications` | Messages to students and instructors (sick, lesson change, ...) |
+| `settings` | Application settings such as maintenance mode |
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+Accounts and invoices are read and written through **MySQL stored procedures** (`spGetAllAccounts`, `spAddInvoice`, ...), which are created by migrations. That is why the app needs MySQL and does not run on SQLite.
 
-## Contributing
+ERD diagrams are in `database/ERD/`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Running with Docker (recommended)
 
-## Code of Conduct
+You only need Docker Desktop.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+docker compose up -d --build
+```
 
-## Security Vulnerabilities
+| Service | URL |
+| --- | --- |
+| App | http://localhost:8000 |
+| Adminer (database UI) | http://localhost:8080 (server `mysql`, user `rijschool`, password `secret`) |
+| MySQL | `localhost:3306` |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+On the first start the container waits for MySQL, runs the migrations and seeds demo data. Settings for the local stack are in `.env.docker`.
+
+**Demo accounts**
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@example.com` | `Admin1234` |
+| Instructor | `instructeur@example.com` | `Instructeur1234` |
+| Student | `test@example.com` | `Test1234` |
+
+The demo student has a 20-lesson package with completed, planned and cancelled lessons, plus one open lesson request that the demo instructor can accept.
+
+Useful commands:
+
+```bash
+docker compose logs -f app                      # follow the app logs
+docker compose exec app php artisan migrate     # run artisan commands
+docker compose up -d --build app                # rebuild after code changes
+docker compose down                             # stop (data is kept)
+docker compose down -v                          # stop and delete all data
+```
+
+> The image contains the code, so rebuild it after changing PHP, Blade, CSS or JS files. For live editing, use the local setup below.
+
+## Running locally without Docker
+
+Requirements: PHP 8.2+, Composer, Node.js 20+ and MySQL 8 (you can run just the database with `docker compose up -d mysql`).
+
+```bash
+composer install
+npm install
+cp .env.example .env          # set DB_DATABASE=rijschool, DB_USERNAME=rijschool, DB_PASSWORD=secret
+php artisan key:generate
+php artisan migrate --seed
+composer run dev              # starts php artisan serve, the queue worker and Vite
+```
+
+The app runs on http://localhost:8000.
+
+## Deploying to CasaOS with Portainer
+
+The production stack is in `docker-compose.prod.yml`: the app (PHP 8.3 + Apache) and MySQL 8, each with a persistent volume. The database port is not exposed.
+
+1. Open Portainer on your CasaOS server and go to **Stacks → Add stack**.
+2. Choose **Repository** and enter:
+   - Repository URL: the URL of this Git repository (add credentials if it is private)
+   - Repository reference: `refs/heads/main`
+   - Compose path: `docker-compose.prod.yml`
+3. Under **Environment variables** switch to **Advanced mode** and paste the contents of [`stack.env.example`](stack.env.example). At minimum change:
+   - `DB_PASSWORD` and `DB_ROOT_PASSWORD`
+   - `APP_URL`, the address you will open the app on (for example `http://192.168.1.50:8085`)
+   - `APP_PORT` if `8085` is already taken (CasaOS itself uses port 80)
+   - `SEED_DATABASE=true` if you want the demo data on the first start
+4. Click **Deploy the stack**. Portainer clones the repository and builds the image on the server, which takes a few minutes the first time.
+5. Open `http://<casaos-ip>:8085`.
+
+**Updating:** push your changes to Git, then open the stack in Portainer and click **Pull and redeploy**. Migrations run automatically when the container starts. You can also enable **GitOps updates** in the stack settings to redeploy automatically.
+
+**Good to know**
+- `APP_KEY` is generated on the first start and stored in the `rijschool_app_storage` volume. If you set it yourself, never change it afterwards, or existing sessions and encrypted data stop working.
+- The demo seed only runs once (a marker file is kept in the storage volume).
+- Data lives in the Docker volumes `rijschool_db_data` and `rijschool_app_storage`. Back these up.
+- The app trusts reverse proxy headers, so it works behind Nginx Proxy Manager, Traefik or a Cloudflare Tunnel for HTTPS. Set `APP_URL` to the public `https://` address in that case.
+- To use a prebuilt image instead of building on the server, push one to a registry and set `APP_IMAGE`.
+
+## Docker files
+
+| File | Purpose |
+| --- | --- |
+| `Dockerfile` | Multi-stage build: Composer dependencies, Vite assets, then a PHP 8.3 Apache runtime |
+| `docker/entrypoint.sh` | Waits for the database, sets up `APP_KEY`, runs migrations and the optional seed, caches config and routes |
+| `docker/php/php.ini` | PHP and OPcache settings |
+| `docker/mysql/my.cnf` | MySQL settings for the local stack |
+| `docker-compose.yml` | Local stack: app, MySQL and Adminer |
+| `docker-compose.prod.yml` | Production stack for CasaOS and Portainer |
+| `.env.docker` | Environment for the local app container |
+| `stack.env.example` | Environment variables template for Portainer |
+
+## Tests
+
+```bash
+php artisan test
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT

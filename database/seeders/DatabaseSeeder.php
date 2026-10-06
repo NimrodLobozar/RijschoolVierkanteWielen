@@ -7,6 +7,10 @@ use App\Models\Student;
 use App\Models\Instructor;
 use App\Models\Registration;
 use App\Models\Invoice;
+use App\Models\Auto;
+use App\Models\Lessons;
+use App\Models\Package;
+use App\Models\PickUpAddress;
 use Illuminate\Support\Facades\DB;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -125,6 +129,122 @@ class DatabaseSeeder extends Seeder
 
         // Create instructors
         Instructor::factory(5)->create();
+
+        $this->seedLessons($testUser);
+    }
+
+    /**
+     * Demo instructor login, a package for the test student and lessons.
+     */
+    private function seedLessons(User $testUser): void
+    {
+        // Create a demo instructor that can log in
+        $instructorUser = User::factory()->create([
+            'first_name' => 'Ingrid',
+            'middle_name' => 'de',
+            'last_name' => 'Instructeur',
+            'username' => 'Instructeur',
+            'birth_date' => '1980-05-12',
+            'password' => bcrypt('Instructeur1234'),
+        ]);
+
+        DB::table('contacts')->insert([
+            'email' => 'instructeur@example.com',
+            'user_id' => $instructorUser->id,
+            'street' => 'Lesweg',
+            'house_number' => '7',
+            'addition' => null,
+            'postal_code' => '3511AB',
+            'city' => 'Utrecht',
+            'mobile' => '0611122233',
+            'is_active' => true,
+            'note' => 'Demo instructeur',
+        ]);
+
+        DB::table('roles')->insert([
+            'user_id' => $instructorUser->id,
+            'name' => 'Instructeur',
+            'is_active' => true,
+            'note' => 'Demo instructeur',
+        ]);
+
+        $demoInstructor = Instructor::create([
+            'user_id' => $instructorUser->id,
+            'number' => 'IN000001',
+            'is_active' => true,
+        ]);
+
+        // Give the test student an active 20-lesson package
+        $testStudent = Student::where('user_id', $testUser->id)->first();
+        $package = Package::where('lesson_count', 20)->first() ?? Package::orderByDesc('lesson_count')->first();
+
+        $registration = Registration::create([
+            'student_id' => $testStudent->id,
+            'package_id' => $package->id,
+            'start_date' => now()->subMonth()->toDateString(),
+            'end_date' => null,
+            'is_active' => true,
+            'note' => 'Demo inschrijving',
+        ]);
+
+        $address = PickUpAddress::create([
+            'street' => 'Example Street',
+            'house_number' => '123',
+            'postal_code' => '1234AB',
+            'city' => 'Example City',
+            'is_active' => true,
+        ]);
+
+        $autoId = Auto::where('is_active', true)->value('id') ?? Auto::value('id');
+
+        $demoLessons = [
+            ['-14 days', '10:00', '11:00', Lessons::STATUS_COMPLETED, 'Kennismaking en eerste rijles', 'Goede start, rustig rijgedrag.'],
+            ['-7 days', '10:00', '11:00', Lessons::STATUS_COMPLETED, 'Sturen, schakelen en remmen', 'Schakelen gaat steeds soepeler.'],
+            ['-3 days', '14:00', '15:00', Lessons::STATUS_CANCELLED, 'Rotondes', null],
+            ['+2 days', '10:00', '11:00', Lessons::STATUS_PLANNED, 'Rotondes', null],
+            ['+9 days', '10:00', '11:00', Lessons::STATUS_PLANNED, 'Kruispunten en voorrang', null],
+        ];
+
+        foreach ($demoLessons as [$offset, $start, $end, $status, $goal, $comment]) {
+            $date = now()->modify($offset)->toDateString();
+            $lesson = Lessons::create([
+                'registration_id' => $registration->id,
+                'instructor_id' => $demoInstructor->id,
+                'auto_id' => $autoId,
+                'start_date' => $date,
+                'start_time' => $start,
+                'end_date' => $date,
+                'end_time' => $end,
+                'status' => $status,
+                'goal' => $goal,
+                'instructor_comment' => $comment,
+                'is_active' => true,
+            ]);
+            $lesson->pickUpAddresses()->attach($address->id);
+        }
+
+        // A lesson request that still has to be accepted by an instructor
+        $requestDate = now()->addDays(5)->toDateString();
+        $request = Lessons::create([
+            'registration_id' => $registration->id,
+            'start_date' => $requestDate,
+            'start_time' => '16:00',
+            'end_date' => $requestDate,
+            'end_time' => '17:00',
+            'status' => Lessons::STATUS_REQUESTED,
+            'goal' => 'Invoegen en snelweg',
+            'student_comment' => 'Graag oefenen op de A2.',
+            'is_active' => true,
+        ]);
+        $request->pickUpAddresses()->attach($address->id);
+
+        // Random lessons for the other students
+        Registration::where('id', '!=', $registration->id)->where('is_active', true)->get()
+            ->each(function (Registration $other) {
+                $count = min(rand(1, 3), (int) $other->package->lesson_count);
+                $lessons = Lessons::factory($count)->create(['registration_id' => $other->id]);
+                $lessons->each(fn (Lessons $lesson) => $lesson->pickUpAddresses()->attach(PickUpAddress::factory()->create()->id));
+            });
     }
 
     /**

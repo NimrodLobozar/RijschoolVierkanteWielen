@@ -97,4 +97,24 @@ class Student extends Model
     {
         return $this->hasOne(Role::class, 'user_id', 'user_id')->where('name', 'Leerling');
     }
+
+    /**
+     * Get the registrations (packages) of the student.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function registrations()
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    /**
+     * Get all lessons of the student through the registrations.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function lessons()
+    {
+        return $this->hasManyThrough(Lessons::class, Registration::class);
+    }
 }

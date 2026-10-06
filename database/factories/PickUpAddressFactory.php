@@ -5,7 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pick-upAddress>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PickUpAddress>
  */
 class PickUpAddressFactory extends Factory
 {
@@ -17,7 +17,13 @@ class PickUpAddressFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'street' => $this->faker->streetName(),
+            'house_number' => (string) $this->faker->numberBetween(1, 250),
+            'addition' => null,
+            'postal_code' => $this->faker->numerify('####') . strtoupper($this->faker->lexify('??')),
+            'city' => $this->faker->city(),
+            'is_active' => true,
+            'note' => null,
         ];
     }
 }

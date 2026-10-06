@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Admin Dashboard') }}
+                {{ auth()->user()->hasRole('Admin') ? __('Admin Dashboard') : __('Dashboard') }}
             </h2>
             <span class="px-3 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
                 {{ now()->format('d M Y') }}
@@ -55,6 +55,8 @@
                     <!-- System Controls -->
                     <x-dashboard.system-controls :isMaintenanceMode="$isMaintenanceMode" />
                 </div>
+            @elseif (auth()->user() && (auth()->user()->hasRole('Instructeur') || auth()->user()->hasRole('Leerling')))
+                <x-dashboard.my-lessons />
             @else
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
                     <p class="text-gray-900 dark:text-gray-100">Je hebt geen toegang tot dit dashboard.</p>

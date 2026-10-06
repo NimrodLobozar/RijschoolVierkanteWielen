@@ -8,6 +8,10 @@ use App\Http\Controllers\AutoController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\LessonsController;
+use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\InstructorLessonController;
+use App\Http\Controllers\StudentLessonController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +83,25 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/invoices/{invoice}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
     Route::get('/invoices/{invoice}/mark-as-unpaid', [InvoiceController::class, 'markAsUnpaid'])->name('invoices.markAsUnpaid');
 
+    Route::resource('lessons', LessonsController::class)->except(['show']);
+    Route::resource('registrations', RegistrationController::class);
+});
+
+// Instructeur: eigen lesrooster en lesaanvragen
+Route::middleware(['auth', 'role:Instructeur'])->prefix('instructeur')->name('instructor.')->group(function () {
+    Route::get('/lessen', [InstructorLessonController::class, 'index'])->name('lessons.index');
+    Route::post('/lessen/{lesson}/accepteren', [InstructorLessonController::class, 'accept'])->name('lessons.accept');
+    Route::get('/lessen/{lesson}/bewerken', [InstructorLessonController::class, 'edit'])->name('lessons.edit');
+    Route::patch('/lessen/{lesson}', [InstructorLessonController::class, 'update'])->name('lessons.update');
+});
+
+// Leerling: eigen lessen bekijken, aanvragen en annuleren
+Route::middleware(['auth', 'role:Leerling'])->prefix('leerling')->name('student.')->group(function () {
+    Route::get('/lessen', [StudentLessonController::class, 'index'])->name('lessons.index');
+    Route::get('/lessen/aanvragen', [StudentLessonController::class, 'create'])->name('lessons.create');
+    Route::post('/lessen', [StudentLessonController::class, 'store'])->name('lessons.store');
+    Route::patch('/lessen/{lesson}/annuleren', [StudentLessonController::class, 'cancel'])->name('lessons.cancel');
+    Route::patch('/lessen/{lesson}/opmerking', [StudentLessonController::class, 'comment'])->name('lessons.comment');
 });
 
 Route::post('/toggle-maintenance', [MaintenanceController::class, 'toggle'])->name('toggle.maintenance');

@@ -22,6 +22,12 @@
                         <x-nav-link :href="route('instructors.index')" :active="request()->routeIs('instructors.*')">
                             {{ __('Instructeurs') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('lessons.index')" :active="request()->routeIs('lessons.*')">
+                            {{ __('Lessen') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('registrations.index')" :active="request()->routeIs('registrations.*')">
+                            {{ __('Inschrijvingen') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('autos.index')" :active="request()->routeIs('autos.*')">
                             {{ __('Autos') }}
                         </x-nav-link>
@@ -30,6 +36,16 @@
                         </x-nav-link>
                         <x-nav-link :href="route('betalingen.index')" :active="request()->routeIs('betalingen.*')">
                             {{ __('Payments') }}
+                        </x-nav-link>
+                    @endif
+                    @if (auth()->user() && auth()->user()->hasRole('Instructeur'))
+                        <x-nav-link :href="route('instructor.lessons.index')" :active="request()->routeIs('instructor.lessons.*')">
+                            {{ __('Mijn lesrooster') }}
+                        </x-nav-link>
+                    @endif
+                    @if (auth()->user() && auth()->user()->hasRole('Leerling'))
+                        <x-nav-link :href="route('student.lessons.index')" :active="request()->routeIs('student.lessons.*')">
+                            {{ __('Mijn lessen') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -106,6 +122,12 @@
                 <x-responsive-nav-link :href="route('instructors.index')" :active="request()->routeIs('instructors.*')">
                     {{ __('Instructeurs') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('lessons.index')" :active="request()->routeIs('lessons.*')">
+                    {{ __('Lessen') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('registrations.index')" :active="request()->routeIs('registrations.*')">
+                    {{ __('Inschrijvingen') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('autos.index')" :active="request()->routeIs('autos.*')">
                     {{ __('Autos') }}
                 </x-responsive-nav-link>
@@ -114,6 +136,16 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('betalingen.index')" :active="request()->routeIs('betalingen.*')">
                     {{ __('Payments') }}
+                </x-responsive-nav-link>
+            @endif
+            @if (auth()->user() && auth()->user()->hasRole('Instructeur'))
+                <x-responsive-nav-link :href="route('instructor.lessons.index')" :active="request()->routeIs('instructor.lessons.*')">
+                    {{ __('Mijn lesrooster') }}
+                </x-responsive-nav-link>
+            @endif
+            @if (auth()->user() && auth()->user()->hasRole('Leerling'))
+                <x-responsive-nav-link :href="route('student.lessons.index')" :active="request()->routeIs('student.lessons.*')">
+                    {{ __('Mijn lessen') }}
                 </x-responsive-nav-link>
             @endif
         </div>
